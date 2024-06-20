@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parking Lot</title>
+    <link rel="stylesheet" type="text/css" href="static/css/parking_lot.css">
+</head>
+<body>
+    <h1>PARKING LOT</h1>
+    <div>
+        <label for="costPerUnitSecond">Cost per Unit Second:</label>
+        <input type="number" id="costPerUnitSecond" name="costPerUnitSecond" step="0.01">
+        <button onclick="fetchParkingData()">SUBMIT</button>
+    </div>
+    <div class="parking-lot">
+        <div id="slot1" class="parking-space">
+            <p class="status"></p>
+            <p class="elapsed-time" style="color:#000; position:absolute; top:130px; left:240px;"></p>
+            <p class="cost" style="color:#000; position:absolute; top:180px; left:260px;"></p>
+        </div>
+        <div id="slot2" class="parking-space">
+            <p class="status"></p>
+            <p class="elapsed-time" style="color:#000; position:absolute; top:130px; left:850px;"></p>
+            <p class="cost" style="color:#000; position:absolute; top:180px; left:870px;"></p>
+        </div>
+        <div id="slot3" class="parking-space">
+            <p class="status"></p>
+            <p class="elapsed-time" style="color:#000; position:absolute; top:270px; left:240px;"></p>
+            <p class="cost" style="color:#000; position:absolute; top:320px; left:260px;"></p>
+        </div>
+    </div>
+
+    <script>
+        function fetchParkingData() {
+            const costPerUnitSecond = document.getElementById("costPerUnitSecond").value;
+            fetch(`/parking_data?costPerUnitSecond=${costPerUnitSecond}`)
+                .then(response => response.json())
+                .then(data => {
+                    updateParkingSlot("slot1", data.slots[0], data.elapsed_times[0], data.costs[0]);
+                    updateParkingSlot("slot2", data.slots[1], data.elapsed_times[1], data.costs[1]);
+                    updateParkingSlot("slot3", data.slots[2], data.elapsed_times[2], data.costs[2]);
+                })
+                .catch(error => {
+                    console.error('Error fetching data:', error);
+                });
+        }
+
+        function updateParkingSlot(slotId, status, time, cost) {
+            const slotElement = document.getElementById(slotId);
+            const statusElement = slotElement.querySelector('.status');
+            const timeElement = slotElement.querySelector('.elapsed-time');
+            const costElement = slotElement.querySelector('.cost');
+
+            if (status === 1) {
+                statusElement.textContent = "Available";
+                slotElement.style.backgroundColor = "green";
+            } else {
+                statusElement.textContent = "Unavailable";
+                slotElement.style.backgroundColor = "red";
+            }
+
+            if (time !== null) {
+                const minutes = Math.floor(time / 60);
+                const seconds = Math.floor(time % 60);
+                timeElement.textContent = `Elapsed time: ${minutes}m ${seconds}s`;
+            } else {
+                timeElement.textContent = `Elapsed time: 0m 0s`;
+            }
+
+            if (cost !== null) {
+                costElement.textContent = `Cost: ₹${cost.toFixed(2)}`;
+            } else {
+                costElement.textContent = `Cost: ₹0.00`;
+            }
+        }
+        setInterval(fetchParkingData, 1000);
+    </script>
+</body>
+</html>
